@@ -132,3 +132,115 @@ gg_obj <- ggplot(pca_df, aes(PC1, PC2)) +
 
 gg_obj
 
+# Chemical KW
+rna.pca.nine <- data.frame(PC1 = pca_object$x[,1],
+                           PC2 = pca_object$x[,2],
+                           PC3 = pca_object$x[,3],
+                           PC4 = pca_object$x[,4],
+                           PC5 = pca_object$x[,5],
+                           PC6 = pca_object$x[,6],
+                           PC7 = pca_object$x[,7],
+                           PC8 = pca_object$x[,8],
+                           PC9 = pca_object$x[,9],
+                           PC9 = pca_object$x[,10])
+
+# set explained variance as colnames
+colnames(rna.pca.nine) <- paste0(as.character(round((pca_object$sdev^2 / 
+                                                       sum(pca_object$sdev^2)*100), 
+                                                    digits = 0)), " %")[c(1:10)]
+chemical_df <- select(pca_df, c(Methods))
+chemical_df$ChCl3 <- ifelse(grepl("ChCl3", chemical_df$Methods), "yes", "no")
+chemical_df$PP <- ifelse(grepl("PP", chemical_df$Methods), "yes", "no")
+chemical_df$MTBE <- ifelse(grepl("MTBE", chemical_df$Methods), "yes", "no")
+chemical_df$EtOH <- ifelse(grepl("EtOH", chemical_df$Methods), "yes", "no")
+chemical_df$ACN <- ifelse(grepl("ACN", chemical_df$Methods), "yes", "no")
+chemical_df$MeOH <- ifelse(grepl("MeOH", chemical_df$Methods), "yes", "no")
+chemical_df$IPA <- ifelse(grepl("IPA", chemical_df$Methods), "yes", "no")
+
+chemical_df <- select(chemical_df, -Methods)
+
+non_cont_test_list <- apply(chemical_df, MARGIN = 2, FUN = function(feat){
+  na.ind <- which(is.na(feat))
+  if(is.integer(na.ind) && length(na.ind) == 0){
+    feat <- feat
+  }else{
+    feat <- feat[-na.ind] 
+  }
+  test_sig <- apply(pca_object$x[, c(1:10)], MARGIN = 2,
+                    FUN = function(sig){
+                      if(is.integer(na.ind) && length(na.ind) == 0){
+                        sig <- sig
+                      }else{
+                        sig <- sig[-na.ind]
+                      }
+                      kru.test <- kruskal.test(sig, factor(feat))
+                      temp_out <- data.frame(kru.test$p.value)
+                      return(temp_out)
+                    })
+  sig.test <- do.call(rbind, test_sig)
+  rownames(sig.test) <- paste0("PC ", c(1:10), " (", colnames(rna.pca.nine), ")")
+  colnames(sig.test) <- "p.value"
+  return(sig.test)
+})
+kru_p.value_df <- do.call(cbind, non_cont_test_list)
+colnames(kru_p.value_df) <- names(non_cont_test_list)
+
+# Visualization
+rownames(kru_p.value_df) <- gsub("s", "expS", rownames(kru_p.value_df))
+names(kru_p.value_df) <- gsub("clin", "D", names(kru_p.value_df))
+p.abs.cat.m <- t(as.matrix(kru_p.value_df))
+rownames(p.abs.cat.m)
+
+draw(Heatmap(-log10(p.abs.cat.m),
+             name = "-log10(pval)",
+             col = colorRamp2(breaks = c(0, -log10(0.05), 10),
+                              c("white", "white", muted("red"))),
+             cluster_rows = FALSE, cluster_columns = FALSE,
+             column_names_side = c("top"),
+             rect_gp = gpar(col = "black"),
+             heatmap_legend_param = list(direction = "horizontal")), 
+     heatmap_legend_side = "bottom")
+
+# Loadings plot
+loadings_df <- data.frame(pca_object$rotation[, c(1:2)])
+loadings_list <- apply(loadings_df, MARGIN = 2, FUN = function(x){
+  in_df <- data.frame(x)
+  temp_df <- rownames_to_column(in_df, var = "Metabolite") %>% 
+    gather(PC, Loadings, -Metabolite) %>%
+    arrange(desc(abs(Loadings)))
+  out_df <- head(temp_df, 15)
+  return(out_df)
+})
+for(i in c(1:length(loadings_list))){
+  loadings_list[[i]]$PC <- paste0("PC", i)
+}
+plot_df <- do.call(rbind, loadings_list)
+
+ggplot(plot_df, aes(x = PC, y = Loadings)) +
+  geom_point(size = 5, aes(color = Loadings)) +
+  geom_point(shape = 1, size = 5, colour = "black") +
+  ylab("Loadings") +
+  xlab("") +
+  scale_color_gradient2() +
+  theme_bw() +
+  geom_text_repel(aes(x = PC, y = Loadings, label = Metabolite), color = "black", 
+                  max.iter = 15000, segment.size = 0.20, size = 2.3, 
+                  segment.colour = "grey47", nudge_x = 0.5, max.overlaps = 1000)
+
+pc_plot_list <- split(plot_df, f = plot_df$PC)
+
+plot_list <- lapply(pc_plot_list, FUN = function(x){
+  ggplot(x, aes(y = reorder(Metabolite, Loadings), x = Loadings)) +
+    geom_bar(stat = "identity", aes(fill = Loadings)) +
+    # geom_bar(colour = "black", stat = "identity") +
+    facet_wrap(~ PC, scales = "free_x") +
+    xlab("Loadings") +
+    ylab("") +
+    scale_fill_gradient2(low = muted("blue"), high = muted("red")) +
+    theme_bw() +
+    theme(legend.position = "none")
+})
+
+plot_list
+
+  
