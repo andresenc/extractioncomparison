@@ -3,10 +3,8 @@ library(cowplot)
 library(dplyr)
 library(magrittr)
 
-## Set directories
-input.dir <- file.path("/icgc/dkfzlsdf/analysis/OE0285_projects/biocrates500/extraction_evaluation/paper_figures")
-output.dir <- "/icgc/dkfzlsdf/analysis/OE0285_projects/biocrates500/extraction_evaluation/paper_figures"
-load(file.path(input.dir, "input.RData"))
+# Load input
+load(file.path("input.RData"))
 
 # Remodel data
 filtered_input_df <- filter(input_df, LOD != 0, !is.na(Group)) %>%
@@ -40,7 +38,6 @@ legend_plot <- ggplot(df_list$Liver, aes(x = Methods, y = Number, fill = Class))
 legend_graph <- get_legend(legend_plot)
 
 # Combine plots
-pdf(file = file.path(output.dir, "Combined_barplot_anova.pdf"), width = 9, height = 7)
 plot_grid(plot_grid(plot_list[[1]],
                     plot_list[[2]],
                     plot_list[[3]],
@@ -51,6 +48,6 @@ plot_grid(plot_grid(plot_list[[1]],
           ncol = 2, 
           rel_widths = c(1, 0.7),
           rel_heights = c(1, 0.5))
-dev.off()
+
 
 

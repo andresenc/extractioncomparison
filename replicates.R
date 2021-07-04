@@ -6,6 +6,9 @@ library(tibble)
 # Load input
 load(file.path("input.RData"))
 
+input_df$Methods <- gsub(":", "\n", input_df$Methods)
+input_df$Methods <- factor(input_df$Methods, levels = unique(input_df$Methods))
+
 # Filter for LOD
 ablod_df <- filter(input_df, LOD == 1)
 statistics_df <- group_by(ablod_df, Tissue, Methods) %>%
@@ -34,6 +37,7 @@ ggplot(summary_rep_df, aes(x = Tissue, y = Sum, fill = Replicate)) +
   geom_bar(position = "dodge", stat = "identity") +
   facet_wrap(~ Methods, ncol = 2) +
   theme_bw() +
+  theme(legend.position = "top") +
   ylab("Sum of concentrations") +
   scale_fill_manual(values = c("grey40", "grey60", "grey80"))
 

@@ -56,3 +56,7 @@ plot_grid(plot_grid(plot_list[[1]],
 #                        Max = max(out$Values))
 #   return(out_df)
 # })
+# 
+# stat_list_tri <- filter(filtered_input_df, Class == "Triacylglycerols")
+# median(stat_list_tri$Number)
+# mad(stat_list_tri$Number)

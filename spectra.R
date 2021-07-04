@@ -5,6 +5,9 @@ library(scales)
 # Load input
 load(file.path("input.RData"))
 
+input_df$Methods <- gsub(":", "\n", input_df$Methods)
+input_df$Methods <- factor(input_df$Methods, levels = unique(input_df$Methods))
+
 cv_df <- input_df
 cv_df$Mean <- ifelse(cv_df$LOD == 1, cv_df$Mean, 0)
 
@@ -23,6 +26,7 @@ ggplot(liver_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
         panel.grid.minor.y = element_blank(),
         strip.text.y = element_text(angle = 270, size = 6)) 
 
+
 # Plot HEK samples
 hek_temp <- filter(cv_df, Tissue == "HEK")
 ggplot(hek_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
@@ -32,7 +36,7 @@ ggplot(hek_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   theme_bw() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
-  ylab("Mean Concentration [pmol/10^6 cells]") +
+  ylab(expression(paste("Mean Concentration [pmol/", 10^6, " cells]"))) +
   theme(axis.text.x = element_blank(), axis.ticks.length.x = unit(0, "cm"),
         panel.grid.major= element_line(color = "white"), 
         panel.grid.minor.y = element_blank(),
@@ -47,7 +51,7 @@ ggplot(hl_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   theme_bw() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
-  ylab("Mean Concentration [pmol/10^6 cells]") +
+  ylab(expression(paste("Mean Concentration [pmol/", 10^6, " cells]"))) +
   theme(axis.text.x = element_blank(), axis.ticks.length.x = unit(0, "cm"),
         panel.grid.major= element_line(color = "white"), 
         panel.grid.minor.y = element_blank(),
@@ -62,7 +66,7 @@ ggplot(bm_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   theme_bw() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
-  ylab("Mean Concentration [pmol/10^6 cells]") +
+  ylab(expression(paste("Mean Concentration [pmol/", 10^6, " cells]"))) +
   theme(axis.text.x = element_blank(), axis.ticks.length.x = unit(0, "cm"),
         panel.grid.major= element_line(color = "white"), 
         panel.grid.minor.y = element_blank(),
@@ -78,7 +82,7 @@ ggplot(method_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   theme_bw() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
-  ylab("Mean Concentration [pmol/mg] or [pmol/10^6 cells]") +
+  ylab(expression(paste("Mean Concentration [pmol/mg] or [pmol/", 10^6, " cells]"))) +
   theme(axis.text.x = element_blank(), axis.ticks.length.x = unit(0, "cm"),
         panel.grid.major= element_line(color = "white"), 
         panel.grid.minor.y = element_blank(),

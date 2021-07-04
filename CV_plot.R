@@ -6,6 +6,9 @@ library(magrittr)
 # Load input
 load(file.path("input.RData"))
 
+input_df$Methods <- gsub(":", "\n", input_df$Methods)
+input_df$Methods <- factor(input_df$Methods, levels = unique(input_df$Methods))
+
 cv_df <- filter(input_df, LOD == 1)
 unfiltered_df <- input_df
 
