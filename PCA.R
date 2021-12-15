@@ -2,6 +2,10 @@ library(dplyr)
 library(magrittr)
 library(ggplot2)
 library(tidyr)
+library(ComplexHeatmap)
+library(circlize)
+library(scales)
+library(ggrepel)
 
 # Load input
 load(file.path("input.RData"))
@@ -42,7 +46,7 @@ imputed_m <- apply(input_m, MARGIN = 2, FUN = function(x){
 plot_m <- log2(imputed_m)
 
 # Pareto scaling
-plot_m_scaled <- apply(plot_m, MARGIN = 1, function(x) (x - mean(x, na.rm = T)) / sqrt(sd(x, na.rm = T)))
+plot_m_scaled <- t(apply(plot_m, MARGIN = 2, function(x) (x - mean(x, na.rm = T)) / sqrt(sd(x, na.rm = T))))
 
 # PCA 
 pca_object <- prcomp(t(plot_m_scaled), center = TRUE)
@@ -164,7 +168,7 @@ imputed_m <- apply(input_m, MARGIN = 2, FUN = function(x){
 plot_m <- log2(imputed_m)
 
 # Pareto scaling
-plot_m_scaled <- apply(plot_m, MARGIN = 1, function(x) (x - mean(x, na.rm = T)) / sqrt(sd(x, na.rm = T)))
+plot_m_scaled <- t(apply(plot_m, MARGIN = 2, function(x) (x - mean(x, na.rm = T)) / sqrt(sd(x, na.rm = T))))
 
 # PCA
 pca_object <- prcomp(t(plot_m_scaled), center = TRUE)
@@ -295,5 +299,31 @@ plot_list <- lapply(pc_plot_list, FUN = function(x){
 
 
 print(plot_list[[i]])
+
+# Plot PC1
+red_raw_df <- raw_df[, match(pc_plot_list[[1]]$Metabolite, colnames(raw_df))]
+
+heat.anno <- HeatmapAnnotation(df = data.frame(Method = pca_df$Methods,
+                                               IPA = chemical_df$IPA,
+                                               MeOH = chemical_df$MeOH,
+                                               ACN = chemical_df$ACN),
+                               col = list(Method = col_vector_methods,
+                                          IPA = c("yes" = "grey", "no" = "white"),
+                                          MeOH = c("yes" = "grey", "no" = "white"),
+                                          ACN = c("yes" = "grey", "no" = "white")),
+                               annotation_name_side = "right")
+
+Heatmap(t(scale(red_raw_df)),
+        cluster_columns = FALSE,
+        top_annotation = heat.anno, name = "z-score",
+        show_column_names = FALSE)
+
+# Plot PC2
+red_raw_df <- raw_df[, match(pc_plot_list[[2]]$Metabolite, colnames(raw_df))]
+
+Heatmap(t(scale(red_raw_df)),
+        cluster_columns = FALSE,
+        top_annotation = heat.anno, name = "z-score",
+        show_column_names = FALSE)
 
 
