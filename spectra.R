@@ -11,8 +11,8 @@ input_df$Methods <- factor(input_df$Methods, levels = unique(input_df$Methods))
 cv_df <- input_df
 cv_df$Mean <- ifelse(cv_df$LOD == 1, cv_df$Mean, 0)
 
-# Plot liver samples without method one (Figure 3)
-liver_temp <- filter(cv_df, Tissue == "Liver" & Method != "1")
+# Plot liver samples without method 7b (Figure 3)
+liver_temp <- filter(cv_df, Tissue == "Liver" & Method != "7b")
 ggplot(liver_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = col_vector) +
@@ -72,8 +72,8 @@ ggplot(bm_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
         panel.grid.minor.y = element_blank(),
         strip.text.y = element_text(angle = 270, size = 6)) 
 
-# Plot method 1 across all tissues
-method_temp <- filter(cv_df, Method == "1")
+# Plot method 7b across all tissues
+method_temp <- filter(cv_df, Method == "7b")
 method_temp$Tissue <- factor(method_temp$Tissue, levels = c("Liver", "Bone Marrow", "HEK", "HL60"))
 ggplot(method_temp, aes(x = Metabolite, y = Mean, fill = Class)) +
   geom_bar(stat = "identity") +
